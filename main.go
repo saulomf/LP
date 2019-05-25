@@ -101,7 +101,7 @@ func IniciaGrid(grid *[30][30]Celula){
 }
 
 //Percorre a matriz do grid e mostra na tela
-func MostraGrid(grid [30][30]Celula){
+func MostraGrid(grid *[30][30]Celula){
     for i := 0; i < 30; i++ {
         for j := 0; j < 30; j++ {
             fmt.Printf("%b ", grid[i][j].viva)
@@ -111,15 +111,16 @@ func MostraGrid(grid [30][30]Celula){
 
 }
 
+type Old_State struct{i,j,vida int}
 
-func Jogo(grid *[30][30]Celula, i int, j int)  {
+func Jogo(grid *[30][30]Celula, i int, j int, hold chan int, result chan Old_State) {
     vivos := 0 //quantidade de vizinhos vivos
     //Verifica todos os vizinhos da celula
-    for posI := i-1; posI < i+1; posI++ {
-        for posJ := j-1; posJ < j+1; posJ++ {
+    for posI := i-1; posI <= i+1; posI++ {
+        for posJ := j-1; posJ <= j+1; posJ++ {
             //fmt.Printf("\n%d %d", posI, posJ)
 
-            if(grid[posI][posJ].viva == 1){
+            if(grid[(posI+30)%30][(posJ+30)%30].viva == 1){
                 vivos++
             }
         }
@@ -127,35 +128,59 @@ func Jogo(grid *[30][30]Celula, i int, j int)  {
 
     //Abaixo estão sendo usada as regras do jogo da vida de conway, a ideia e tornar essas regras flexiveis a outros valores
 
+    var ret Old_State
+    ret.i= i
+    ret.j= j
+    ret.vida = 1
     vivos-- //retira a vida da propria celula da contagem
     if(grid[i][j].viva == 1){
         if(vivos < 2){//morre de solidao
-            grid[i][j].viva = 0
+		 ret.vida = 0
         }
         if(vivos > 3){//morre de superpopulacao
-            grid[i][j].viva = 0
-        }
+        	 ret.vida = 0
+	   }
         //caso tenha 2 ou 3 vizinhos continua viva
     } else {
-        if(vivos == 3){
-            grid[i][j].viva = 1//Celula antes morta nasce
+        if(vivos != 3-1){
+            ret.vida = 0	//Celula antes morta nao nasce
         }
     }
+
+    hold <- 1
+    result <- ret
 }
 
-func AtualizaGrid(grid [30][30]Celula){
+func AtualizaGrid(grid *[30][30]Celula){
     cont := 0
     continua := true
 
     for continua != false {
-        for i := 1; i < 29; i++ {
-            for j := 1; j < 29; j++ {
-                Jogo(&grid, i, j)
-            }
-        }
-        time.Sleep(500 * time.Millisecond)
+		
         CallClear()
         MostraGrid(grid)
+        time.Sleep(500 * time.Millisecond)
+
+	   hold := make(chan int,0)
+	   result := make(chan Old_State)
+		
+        for i := 0; i < 30; i++ {
+            for j := 0; j < 30; j++ {
+                go Jogo(grid, i, j,hold,result)
+            }
+        }
+
+	   for i := 0; i < 900; i++{
+		  <-hold
+	   }
+
+	   var new Old_State
+	   for i := 0; i < 900; i++{
+		  new = <-result
+		  grid[new.i][new.j].viva = new.vida
+	   }
+
+
         //fmt.Printf("\n")
 
         if(cont == 100){//Garantir que não rode infinitamente
@@ -164,12 +189,26 @@ func AtualizaGrid(grid [30][30]Celula){
     }
 }
 
+func Teste (Celulas *[30][30]Celula) {
+	for i:=0;i<30;i++ {
+		for j:=0;j<30;j++{
+			Celulas[i][j].viva=0
+		}
+	}
+	Celulas[0][1].viva = 1
+	Celulas[1][2].viva = 1
+	Celulas[2][0].viva = 1
+	Celulas[2][1].viva = 1
+	Celulas[2][2].viva = 1
+}
+
 func main(){
     var grid [30][30]Celula
 
-    IniciaGrid(&grid)
-    MostraGrid(grid)
-    AtualizaGrid(grid)
+    Teste(&grid)
+    //IniciaGrid(&grid)
+    MostraGrid(&grid)
+    AtualizaGrid(&grid)
 
 
 }
