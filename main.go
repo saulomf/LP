@@ -107,8 +107,8 @@ func MostraGrid(N int, M int, grid [][]Celula){
     for i := 0; i < N; i++ {
         for j := 0; j < M; j++ {
 		if(grid[i][j].viva){
-			fmt.Printf("#") 
-		} else { 
+			fmt.Printf("#")
+		} else {
 			fmt.Printf(" ")
 		}
         }
@@ -133,7 +133,7 @@ func Jogo(rule Rule,N int, M int,grid [][]Celula, i int, j int, hold chan int, r
     	ret.i= i
     	ret.j= j
     	ret.vida = apply_rule(rule,domain)
-    	
+
     	hold <- 1
     	result <- ret
 }
@@ -145,14 +145,14 @@ func AtualizaGrid(N int,M int,grid [][]Celula){
 	conway := rule_random()
 
     	for continua != false {
-		
+
         	CallClear()
         	MostraGrid(N,M,grid)
         	time.Sleep(100 * time.Millisecond)
 
 		hold := make(chan int,0)
 		result := make(chan Old_State)
-		
+
         	for i := 0; i < N; i++ {
         		for j := 0; j < M; j++ {
         	        	go Jogo(conway,N,M,grid,i,j,hold,result)
@@ -191,7 +191,7 @@ func Teste (N int,M int,Celulas [][]Celula) {
 }
 
 func main(){
-    	grid := make([][]Celula,100,100) 
+    	grid := make([][]Celula,100,100)
 	for i := range grid {
     		grid[i] = make([]Celula,100,100)
 	}
