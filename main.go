@@ -1,12 +1,12 @@
 package main
 
 import (
-    "fmt"
-    "time"
-    "math/rand"
-    "os"
-    "os/exec"
-    "runtime"
+    	"fmt"
+    	"time"
+    	"math/rand"
+    	"os"
+    	"os/exec"
+    	"runtime"
 )
 
 var clear map[string]func() //create a map for storing clear funcs
@@ -45,21 +45,23 @@ type Genes struct{
 
 //Estrutura de cada celula do grid
 type Celula struct{
-    viva int
+    viva bool
+    especie int
     mutacoes Genes
 }
 
+
 //Inicia cada celula do grid
-func IniciaGrid(grid *[30][30]Celula){
+func IniciaGrid(N int,M int, grid [][]Celula){
     s1 := rand.NewSource(time.Now().UnixNano())
     r1 := rand.New(s1)
     mutacao := -1
-    for i := 0; i < 30; i++ {
-        for j := 0; j < 30; j++ {
+    for i := 0; i < N; i++ {
+        for j := 0; j < M; j++ {
             //Seta a vida da celula com 10% de chance dela nascer
             if(r1.Intn(2) == 1){
 
-                grid[i][j].viva = 1
+                grid[i][j].viva = true
                 //Caso a celula esteja viva sorteia com 5% de chance cada gene de mutacao
                 for l := 0; l < 6; l++ {
                     mutacao = r1.Intn(30)
@@ -91,7 +93,7 @@ func IniciaGrid(grid *[30][30]Celula){
                     }
                 }
             } else {
-                grid[i][j].viva = 0
+                grid[i][j].viva = false
             }
 
         }//end j
@@ -101,114 +103,101 @@ func IniciaGrid(grid *[30][30]Celula){
 }
 
 //Percorre a matriz do grid e mostra na tela
-func MostraGrid(grid *[30][30]Celula){
-    for i := 0; i < 30; i++ {
-        for j := 0; j < 30; j++ {
-            fmt.Printf("%b ", grid[i][j].viva)
+func MostraGrid(N int, M int, grid [][]Celula){
+    for i := 0; i < N; i++ {
+        for j := 0; j < M; j++ {
+		if(grid[i][j].viva){
+			fmt.Printf("#") 
+		} else { 
+			fmt.Printf(" ")
+		}
         }
         fmt.Printf("\n")
     }
 
 }
 
-type Old_State struct{i,j,vida int}
-
-func Jogo(grid *[30][30]Celula, i int, j int, hold chan int, result chan Old_State) {
-    vivos := 0 //quantidade de vizinhos vivos
-    //Verifica todos os vizinhos da celula
-    for posI := i-1; posI <= i+1; posI++ {
-        for posJ := j-1; posJ <= j+1; posJ++ {
-            //fmt.Printf("\n%d %d", posI, posJ)
-
-            if(grid[(posI+30)%30][(posJ+30)%30].viva == 1){
-                vivos++
-            }
-        }
-    }
-
-    //Abaixo estão sendo usada as regras do jogo da vida de conway, a ideia e tornar essas regras flexiveis a outros valores
-
-    var ret Old_State
-    ret.i= i
-    ret.j= j
-    ret.vida = 1
-    vivos-- //retira a vida da propria celula da contagem
-    if(grid[i][j].viva == 1){
-        if(vivos < 2){//morre de solidao
-		 ret.vida = 0
-        }
-        if(vivos > 3){//morre de superpopulacao
-        	 ret.vida = 0
-	   }
-        //caso tenha 2 ou 3 vizinhos continua viva
-    } else {
-        if(vivos != 3-1){
-            ret.vida = 0	//Celula antes morta nao nasce
-        }
-    }
-
-    hold <- 1
-    result <- ret
+type Old_State struct{
+	i,j int
+	vida bool
 }
 
-func AtualizaGrid(grid *[30][30]Celula){
-    cont := 0
-    continua := true
+type Rule [512]bool
 
-    for continua != false {
-		
-        CallClear()
-        MostraGrid(grid)
-        time.Sleep(500 * time.Millisecond)
+func Jogo(rule Rule,N int, M int,grid [][]Celula, i int, j int, hold chan int, result chan Old_State) {
+    	//Verifica todos os vizinhos da celula
+    	domain := bitfy(i,j,N,M,grid)
 
-	   hold := make(chan int,0)
-	   result := make(chan Old_State)
-		
-        for i := 0; i < 30; i++ {
-            for j := 0; j < 30; j++ {
-                go Jogo(grid, i, j,hold,result)
-            }
-        }
-
-	   for i := 0; i < 900; i++{
-		  <-hold
-	   }
-
-	   var new Old_State
-	   for i := 0; i < 900; i++{
-		  new = <-result
-		  grid[new.i][new.j].viva = new.vida
-	   }
-
-
-        //fmt.Printf("\n")
-
-        if(cont == 100){//Garantir que não rode infinitamente
-            continua = false
-        }
-    }
+	//Abaixo estão sendo usada as regras do jogo da vida de conway, a ideia e tornar essas 		regras flexiveis a outros valores
+    	var ret Old_State
+    	ret.i= i
+    	ret.j= j
+    	ret.vida = apply_rule(rule,domain)
+    	
+    	hold <- 1
+    	result <- ret
 }
 
-func Teste (Celulas *[30][30]Celula) {
-	for i:=0;i<30;i++ {
-		for j:=0;j<30;j++{
-			Celulas[i][j].viva=0
+func AtualizaGrid(N int,M int,grid [][]Celula){
+    	cont := 0
+    	continua := true
+	//conway := rule_conway()
+	conway := rule_random()
+
+    	for continua != false {
+		
+        	CallClear()
+        	MostraGrid(N,M,grid)
+        	time.Sleep(100 * time.Millisecond)
+
+		hold := make(chan int,0)
+		result := make(chan Old_State)
+		
+        	for i := 0; i < N; i++ {
+        		for j := 0; j < M; j++ {
+        	        	go Jogo(conway,N,M,grid,i,j,hold,result)
+        	    	}
+        	}
+
+		for i := 0; i < N*M; i++{
+			<-hold
+		}
+
+		var new Old_State
+		for i := 0; i < N*M; i++{
+			new = <-result
+			grid[new.i][new.j].viva = new.vida
+		}
+
+        	//fmt.Printf("\n")
+
+        	if(cont == 100){//Garantir que não rode infinitamente
+        		continua = false
+        	}
+    	}
+}
+
+func Teste (N int,M int,Celulas [][]Celula) {
+	for i:=0;i<N;i++ {
+		for j:=0;j<M;j++{
+			Celulas[i][j].viva=false
 		}
 	}
-	Celulas[0][1].viva = 1
-	Celulas[1][2].viva = 1
-	Celulas[2][0].viva = 1
-	Celulas[2][1].viva = 1
-	Celulas[2][2].viva = 1
+	Celulas[0][1].viva = true
+	Celulas[1][2].viva = true
+	Celulas[2][0].viva = true
+	Celulas[2][1].viva = true
+	Celulas[2][2].viva = true
 }
 
 func main(){
-    var grid [30][30]Celula
+    	grid := make([][]Celula,100,100) 
+	for i := range grid {
+    		grid[i] = make([]Celula,100,100)
+	}
 
-    Teste(&grid)
-    //IniciaGrid(&grid)
-    MostraGrid(&grid)
-    AtualizaGrid(&grid)
-
-
+    	Teste(100,100,grid)
+    	//IniciaGrid(100,100,grid)
+    	MostraGrid(100,100,grid)
+    	AtualizaGrid(100,100,grid)
 }
