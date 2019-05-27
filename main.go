@@ -2,28 +2,17 @@ package main
 
 import (
     	"fmt"
-    	"time"
-    	"math/rand"
     	"os"
-    	"os/exec"
+	"os/exec"
     	"runtime"
 
-        _ "image/png"
-        "log"
-        "image/color"
+     _ "image/png"
+     "log"
+     "image/color"
 
-        "github.com/hajimehoshi/ebiten"
-        "github.com/hajimehoshi/ebiten/ebitenutil"
+     "github.com/hajimehoshi/ebiten"
+     "github.com/hajimehoshi/ebiten/ebitenutil"
 )
-
-var clear map[string]func() //create a map for storing clear funcs
-var img *ebiten.Image //Imagem 1 quadrado preto
-var img2 *ebiten.Image //Imagem 2 quadrado branco
-var tela [][]Celula // canal para grid de print
-var teste int = 0 // variavel para teste de controle do grid
-var s1 = rand.NewSource(time.Now().UnixNano())
-var r1 = rand.New(s1)
-
 
 func init() {
     clear = make(map[string]func()) //Initialize it
@@ -103,24 +92,6 @@ func update(screen *ebiten.Image) error{
 	return nil
 }
 
-//Conjunto de Genes para sobreviver a regiões que cada celula pode ter
-type Genes struct{
-    agua bool
-    calor bool
-    frio bool
-    altitude bool
-    comida bool
-}
-
-//Estrutura de cada celula do grid
-type Celula struct{
-    viva bool
-    especie int
-    mutacoes Genes
-    posX float64
-    posY float64
-}
-
 
 //Inicia cada celula do grid
 func IniciaGrid(I int,J int, grid [][]Celula){
@@ -190,13 +161,6 @@ func MostraGrid(I int, J int, grid [][]Celula){
     }
 
 }
-
-type Old_State struct{
-	i,j int
-	vida bool
-}
-
-type Rule [512]bool
 
 func Jogo(rule Rule,I int, J int, i int, j int, hold chan int, result chan Old_State,grid [][]Celula) {
     	//Verifica todos os vizinhos da celula
