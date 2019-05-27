@@ -255,7 +255,7 @@ func simulate(grid [][]Celula){
 	//conway := rule_random()
 
 	teste := 0
-	for true {
+	for cont:=0;cont < 100000;cont++ {
     		if(teste >= 20){
     	    		AtualizaGrid(conway,grid,100,100)
     	    		// Modificações para testar que o grid se altera
@@ -266,8 +266,8 @@ func simulate(grid [][]Celula){
 }
 
 func chose(grid1 [][]Celula,grid2 [][]Celula){
-	for cont:=0; true; cont = (cont+1)%2000 {
-		if(cont < 1000){
+	for i,cont:=0,0; cont < 10000; i,cont = (i+1)%2000,(cont+1) {
+		if(i<1000){
 			tela = grid1
 		} else {
 			tela = grid2
@@ -292,8 +292,8 @@ func main(){
 
 	go simulate(simulacao1)
 	go simulate(simulacao2)
-
-	go chose(simulacao1,simulacao2)
+	tela = simulacao1
+	//go chose(simulacao1,simulacao2)
 
     	if err := ebiten.Run(update, 420, 310, 2, "Novo jogo da vida"); err != nil {
 		log.Fatal(err)
