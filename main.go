@@ -125,47 +125,52 @@ type Celula struct{
 //Inicia cada celula do grid
 func IniciaGrid(I int,J int, grid [][]Celula){
     mutacao := -1
-    for i := 0; i < I; i++ {
-        for j := 0; j < J; j++ {
-            //Seta a vida da celula com 10% de chance dela nascer
-            if(r1.Intn(2) == 1){
-
-                grid[i][j].viva = true
-                //Caso a celula esteja viva sorteia com 5% de chance cada gene de mutacao
-                for l := 0; l < 6; l++ {
-                    mutacao = r1.Intn(30)
-                    switch l {
-                        case 0:
-                            if((mutacao >= 0) && (mutacao <1)){
-                                grid[i][j].mutacoes.agua = true
-                            }
-                            break
-                        case 1:
-                            if((mutacao >= 0) && (mutacao <1)){
-                                grid[i][j].mutacoes.calor = true
-                            }
-                            break
-                        case 2:
-                            if((mutacao >= 0) && (mutacao <1)){
-                                grid[i][j].mutacoes.frio = true
-                            }
-                            break
-                        case 3:
-                            if((mutacao >= 0) && (mutacao <1)){
-                                grid[i][j].mutacoes.altitude = true
-                            }
-                            break
-                        case 4:
-                            if((mutacao >= 0) && (mutacao <1)){
-                                grid[i][j].mutacoes.comida = true
-                            }
-                    }
-                }
-            } else {
-                grid[i][j].viva = false
-            }
-
-        }//end j
+	posX := 1.0
+	posY := 1.0
+    	for i := 0; i < I; i++ {
+		posX = 1.0
+        	for j := 0; j < J; j++ {
+			grid[i][j].posX=posX
+			grid[i][j].posY=posY
+            	//Seta a vida da celula com 10% de chance dela nascer
+            	if(r1.Intn(2) == 1){
+                	grid[i][j].viva = true
+                	//Caso a celula esteja viva sorteia com 5% de chance cada gene de mutacao
+                	for l := 0; l < 6; l++ {
+                    	mutacao = r1.Intn(30)
+                    	switch l {
+                        	case 0:
+                            	if((mutacao >= 0) && (mutacao <1)){
+                              	  	grid[i][j].mutacoes.agua = true
+                            	}
+                            	break
+                        	case 1:
+                            	if((mutacao >= 0) && (mutacao <1)){
+                                	grid[i][j].mutacoes.calor = true
+                            	}
+                            	break
+                        	case 2:
+                            	if((mutacao >= 0) && (mutacao <1)){
+                                	grid[i][j].mutacoes.frio = true
+                            	}
+                            	break
+                        	case 3:
+                            	if((mutacao >= 0) && (mutacao <1)){
+                                	grid[i][j].mutacoes.altitude = true
+                            	}
+                            	break
+                        	case 4:
+                            	if((mutacao >= 0) && (mutacao <1)){
+                                	grid[i][j].mutacoes.comida = true
+                            	}
+                    		}
+                	}
+            	} else {
+                	grid[i][j].viva = false
+            	}
+			posX+=11.0
+        	}//end j
+		posY+=11.0
     }//end i
 
 
@@ -256,7 +261,7 @@ func simulate(I int,J int,grid [][]Celula){
 	//conway := rule_random()
 
 	teste := 0
-	for cont:=0;cont < 10000;cont++ {
+	for true {
     		if(teste >= 20){
     	    		AtualizaGrid(conway,grid,I,J)
     	    		// Modificações para testar que o grid se altera
@@ -267,7 +272,7 @@ func simulate(I int,J int,grid [][]Celula){
 }
 
 func chose(grid1 [][]Celula,grid2 [][]Celula){
-	for i,cont:=0,0; cont < 10000; i,cont = (i+1)%20000,(cont+1) {
+	for i:=0; true; i = (i+1)%20000{
 		if(i<10000){
 			tela = grid1
 		} else {
@@ -293,7 +298,7 @@ func main(){
 
 	go simulate(28,38,simulacao1)
 	go simulate(28,38,simulacao2)
-	tela = simulacao1
+	tela = simulacao2
 	//go chose(simulacao1,simulacao2)
 
     	if err := ebiten.Run(update, 420, 310, 2, "Novo jogo da vida"); err != nil {
