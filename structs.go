@@ -4,6 +4,7 @@ package main
 type Old_State struct{
 	i,j int
 	vida bool
+	especie int
 }
 
 type Rule [512]bool

@@ -1,7 +1,6 @@
 package main
 
 import (
-    	"fmt"
     	"os"
 	"os/exec"
     	"runtime"
@@ -15,21 +14,22 @@ import (
 )
 
 func init() {
-    clear = make(map[string]func()) //Initialize it
-    clear["linux"] = func() {
-        cmd := exec.Command("clear") //Linux example, its tested
-        cmd.Stdout = os.Stdout
-        cmd.Run()
-    }
-    clear["windows"] = func() {
-        cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
-        cmd.Stdout = os.Stdout
-        cmd.Run()
-    }
-    //Parte Grafica
-    var err error
-	img, _, err = ebitenutil.NewImageFromFile("square.png", ebiten.FilterDefault)
-	img2, _, err = ebitenutil.NewImageFromFile("blank.png", ebiten.FilterDefault)
+    	clear = make(map[string]func()) //Initialize it
+    	clear["linux"] = func() {
+    	    cmd := exec.Command("clear") //Linux example, its tested
+    	    cmd.Stdout = os.Stdout
+    	    cmd.Run()
+    	}
+    	clear["windows"] = func() {
+    	    cmd := exec.Command("cmd", "/c", "cls") //Windows example, its tested
+    	    cmd.Stdout = os.Stdout
+    	    cmd.Run()
+    	}
+    	//Parte Grafica
+    	var err error
+	blu, _, err = ebitenutil.NewImageFromFile("blu.png", ebiten.FilterDefault)
+	red, _, err = ebitenutil.NewImageFromFile("red.png", ebiten.FilterDefault)
+	blank, _, err = ebitenutil.NewImageFromFile("blank.png", ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -63,9 +63,13 @@ func update(screen *ebiten.Image) error{
 	for j := 0; j < 38; j++ {
 		op.GeoM.Translate(grid[0][j].posX, grid[0][j].posY)
  	     	if(grid[0][j].viva){
-		     	screen.DrawImage(img2, op)
+		     	if (grid[0][j].especie == 1){
+				screen.DrawImage(blu, op)
+			} else {    			
+				screen.DrawImage(red, op)
+			}
      		} else {
-        		screen.DrawImage(img, op)
+        		screen.DrawImage(blank, op)
      	   	}
      	   	op.GeoM.Reset()
 		//x-=11.0
@@ -78,12 +82,16 @@ func update(screen *ebiten.Image) error{
 		//screen.DrawImage(img, op)
 		for j := 0; j < 38; j++ {
     		op.GeoM.Translate(grid[i][j].posX, grid[i][j].posY)
-            if(grid[i][j].viva){
-    		          	screen.DrawImage(img2, op)
-            } else {
-                	screen.DrawImage(img, op)
-            }
-            op.GeoM.Reset()
+          	if(grid[i][j].viva){
+			if (grid[i][j].especie == 1){
+				screen.DrawImage(blu, op)
+			} else {    			
+				screen.DrawImage(red, op)
+			}
+		} else {
+           	screen.DrawImage(blank, op)
+          	}
+          	op.GeoM.Reset()
 			//x-=11.0
 		}
 		//op.GeoM.Translate(x, 0)
@@ -106,6 +114,7 @@ func IniciaGrid(I int,J int, grid [][]Celula){
             	//Seta a vida da celula com 10% de chance dela nascer
             	if(r1.Intn(2) == 1){
                 	grid[i][j].viva = true
+				grid[i][j].especie = r1.Intn(2)+1 // especie
                 	//Caso a celula esteja viva sorteia com 5% de chance cada gene de mutacao
                 	for l := 0; l < 6; l++ {
                     	mutacao = r1.Intn(30)
@@ -138,6 +147,7 @@ func IniciaGrid(I int,J int, grid [][]Celula){
                 	}
             	} else {
                 	grid[i][j].viva = false
+				grid[i][j].especie = 0
             	}
 			posX+=11.0
         	}//end j
@@ -147,30 +157,26 @@ func IniciaGrid(I int,J int, grid [][]Celula){
 
 }
 
-//Percorre a matriz do grid e mostra na tela
-func MostraGrid(I int, J int, grid [][]Celula){
-    for i := 0; i < I; i++ {
-        for j := 0; j < J; j++ {
-		if(grid[i][j].viva){
-			fmt.Printf("#")
-		} else {
-			fmt.Printf(" ")
-		}
-        }
-        fmt.Printf("\n")
-    }
-
-}
-
 func Jogo(rule Rule,I int, J int, i int, j int, hold chan int, result chan Old_State,grid [][]Celula) {
     	//Verifica todos os vizinhos da celula
-    	domain := bitfy(i,j,I,J,grid)
+    	domain_blu := bitfy(i,j,I,J,grid,1)
+	domain_red := bitfy(i,j,I,J,grid,2)
 
 	//Abaixo estão sendo usada as regras do jogo da vida de conway, a ideia e tornar essas 		regras flexiveis a outros valores
     	var ret Old_State
     	ret.i= i
     	ret.j= j
-    	ret.vida = apply_rule(rule,domain)
+	if(apply_rule(rule,domain_blu) == apply_rule(rule,domain_red)){
+		ret.vida = false
+		ret.especie = 0
+	} else {
+		ret.vida = true
+		if(apply_rule(rule,domain_blu)){
+			ret.especie = 1
+		} else { // red
+			ret.especie = 2
+		}	
+	}
 
     	hold <- 1
     	result <- ret
@@ -196,15 +202,17 @@ func AtualizaGrid(rule Rule,grid [][]Celula,I int,J int){
 	for i := 0; i < I*J; i++{
 		new = <-result
 		grid[new.i][new.j].viva = new.vida
+		grid[new.i][new.j].especie=new.especie
 	}
 }
 
-func Teste (grid [][]Celula,I int,J int) {
+func glider(grid [][]Celula,I int,J int) {
     eixoX, eixoY := 1.0, 1.0
 
 	for i:=0;i<I;i++ {
 		for j:=0;j<J;j++{
 			grid[i][j].viva=false
+			grid[i][j].especie=0
             	grid[i][j].posX=eixoX
             	grid[i][j].posY=eixoY
             	eixoX+=11.0
@@ -218,16 +226,19 @@ func Teste (grid [][]Celula,I int,J int) {
 	grid[2][1].viva = true
 	grid[2][2].viva = true
 
+	grid[0][1].especie = 1
+	grid[1][2].especie = 1
+	grid[2][0].especie = 1
+	grid[2][1].especie = 1
+	grid[2][2].especie = 1
+
 }
 
-func simulate(I int,J int,grid [][]Celula){		
-	conway := rule_conway()
-	//conway := rule_random()
-
+func simulate(rule Rule,I int,J int,grid [][]Celula){		
 	teste := 0
 	for true {
-    		if(teste >= 20){
-    	    		AtualizaGrid(conway,grid,I,J)
+    		if(teste >= 30){
+    	    		AtualizaGrid(rule,grid,I,J)
     	    		// Modificações para testar que o grid se altera
     	    		teste = 0
     		}
@@ -245,30 +256,32 @@ func chose(grid1 [][]Celula,grid2 [][]Celula){
 	}
 }
 
+func aloca_simulacao(I int,J int)[][]Celula {
+	simulacao := make([][]Celula,I,I)
+	for i := range simulacao {
+    		simulacao[i] = make([]Celula,J,J)
+	}
+
+	return simulacao
+}
+
 func main(){
-	simulacao1 := make([][]Celula,28,28)
-	for i := range simulacao1 {
-    		simulacao1[i] = make([]Celula,38,38)
-	}
+	simulacao1 := aloca_simulacao(28,38)
+	simulacao2 := aloca_simulacao(28,38)
+	simulacao3 := aloca_simulacao(28,38)
 
-	simulacao2 := make([][]Celula,28,28)
-	for i := range simulacao2 {
-    		simulacao2[i] = make([]Celula,38,38)
-	}
-
-   	Teste(simulacao1,28,38)
+   	glider(simulacao1,28,38)
 	IniciaGrid(28,38,simulacao2)
+	IniciaGrid(28,38,simulacao3)
 
-
-	go simulate(28,38,simulacao1)
-	go simulate(28,38,simulacao2)
+	go simulate(rule_conway(),28,38,simulacao1)
+	go simulate(rule_conway(),28,38,simulacao2)
+	go simulate(rule_random(),28,38,simulacao3)
 	tela = simulacao2
 	//go chose(simulacao1,simulacao2)
 
     	if err := ebiten.Run(update, 420, 310, 2, "Novo jogo da vida"); err != nil {
 		log.Fatal(err)
 	}
-    	
-    	//MostraGrid(100,100,grid)
 
 }
