@@ -21,6 +21,9 @@ var img *ebiten.Image //Imagem 1 quadrado preto
 var img2 *ebiten.Image //Imagem 2 quadrado branco
 var tela [][]Celula // canal para grid de print
 var teste int = 0 // variavel para teste de controle do grid
+var s1 = rand.NewSource(time.Now().UnixNano())
+var r1 = rand.New(s1)
+
 
 func init() {
     clear = make(map[string]func()) //Initialize it
@@ -70,12 +73,12 @@ func update(screen *ebiten.Image) error{
 	//x := 0.0
 	for j := 0; j < 38; j++ {
 		op.GeoM.Translate(grid[0][j].posX, grid[0][j].posY)
-        if(grid[0][j].viva == true){
-		          screen.DrawImage(img2, op)
-        } else {
-            screen.DrawImage(img, op)
-        }
-        op.GeoM.Reset()
+ 	     	if(grid[0][j].viva){
+		     	screen.DrawImage(img2, op)
+     		} else {
+        		screen.DrawImage(img, op)
+     	   	}
+     	   	op.GeoM.Reset()
 		//x-=11.0
 	}
 	//op.GeoM.Translate(x, 0)
@@ -86,10 +89,10 @@ func update(screen *ebiten.Image) error{
 		//screen.DrawImage(img, op)
 		for j := 0; j < 38; j++ {
     		op.GeoM.Translate(grid[i][j].posX, grid[i][j].posY)
-            if(grid[i][j].viva == true){
-    		          screen.DrawImage(img2, op)
+            if(grid[i][j].viva){
+    		          	screen.DrawImage(img2, op)
             } else {
-                screen.DrawImage(img, op)
+                	screen.DrawImage(img, op)
             }
             op.GeoM.Reset()
 			//x-=11.0
@@ -120,12 +123,10 @@ type Celula struct{
 
 
 //Inicia cada celula do grid
-func IniciaGrid(N int,M int, grid [][]Celula){
-    s1 := rand.NewSource(time.Now().UnixNano())
-    r1 := rand.New(s1)
+func IniciaGrid(I int,J int, grid [][]Celula){
     mutacao := -1
-    for i := 0; i < N; i++ {
-        for j := 0; j < M; j++ {
+    for i := 0; i < I; i++ {
+        for j := 0; j < J; j++ {
             //Seta a vida da celula com 10% de chance dela nascer
             if(r1.Intn(2) == 1){
 
@@ -171,9 +172,9 @@ func IniciaGrid(N int,M int, grid [][]Celula){
 }
 
 //Percorre a matriz do grid e mostra na tela
-func MostraGrid(N int, M int, grid [][]Celula){
-    for i := 0; i < N; i++ {
-        for j := 0; j < M; j++ {
+func MostraGrid(I int, J int, grid [][]Celula){
+    for i := 0; i < I; i++ {
+        for j := 0; j < J; j++ {
 		if(grid[i][j].viva){
 			fmt.Printf("#")
 		} else {
@@ -192,9 +193,9 @@ type Old_State struct{
 
 type Rule [512]bool
 
-func Jogo(rule Rule,N int, M int, i int, j int, hold chan int, result chan Old_State,grid [][]Celula) {
+func Jogo(rule Rule,I int, J int, i int, j int, hold chan int, result chan Old_State,grid [][]Celula) {
     	//Verifica todos os vizinhos da celula
-    	domain := bitfy(i,j,N,M,grid)
+    	domain := bitfy(i,j,I,J,grid)
 
 	//Abaixo estão sendo usada as regras do jogo da vida de conway, a ideia e tornar essas 		regras flexiveis a outros valores
     	var ret Old_State
@@ -208,36 +209,36 @@ func Jogo(rule Rule,N int, M int, i int, j int, hold chan int, result chan Old_S
 
 
 
-func AtualizaGrid(rule Rule,grid [][]Celula,N int,M int){
+func AtualizaGrid(rule Rule,grid [][]Celula,I int,J int){
 	hold := make(chan int,0)
 	result := make(chan Old_State)
 
-    	for i := 0; i < N; i++ {
-    		for j := 0; j < M; j++ {
-     	   		go Jogo(rule,N,M,i,j,hold,result,grid)
+    	for i := 0; i < I; i++ {
+    		for j := 0; j < J; j++ {
+     	   		go Jogo(rule,I,J,i,j,hold,result,grid)
     		}
     	}
 
-	for i := 0; i < N*M; i++{
+	for i := 0; i < I*J; i++{
 		<-hold
 	}
 
 	var new Old_State
-	for i := 0; i < N*M; i++{
+	for i := 0; i < I*J; i++{
 		new = <-result
 		grid[new.i][new.j].viva = new.vida
 	}
 }
 
-func Teste (grid [][]Celula,N int,M int) {
+func Teste (grid [][]Celula,I int,J int) {
     eixoX, eixoY := 1.0, 1.0
 
-	for i:=0;i<N;i++ {
-		for j:=0;j<M;j++{
+	for i:=0;i<I;i++ {
+		for j:=0;j<J;j++{
 			grid[i][j].viva=false
-            grid[i][j].posX=eixoX
-            grid[i][j].posY=eixoY
-            eixoX+=11.0
+            	grid[i][j].posX=eixoX
+            	grid[i][j].posY=eixoY
+            	eixoX+=11.0
 		}
         	eixoX=1.0
         	eixoY+=11.0
@@ -250,14 +251,14 @@ func Teste (grid [][]Celula,N int,M int) {
 
 }
 
-func simulate(grid [][]Celula){		
+func simulate(I int,J int,grid [][]Celula){		
 	conway := rule_conway()
 	//conway := rule_random()
 
 	teste := 0
-	for cont:=0;cont < 100000;cont++ {
+	for cont:=0;cont < 10000;cont++ {
     		if(teste >= 20){
-    	    		AtualizaGrid(conway,grid,100,100)
+    	    		AtualizaGrid(conway,grid,I,J)
     	    		// Modificações para testar que o grid se altera
     	    		teste = 0
     		}
@@ -266,8 +267,8 @@ func simulate(grid [][]Celula){
 }
 
 func chose(grid1 [][]Celula,grid2 [][]Celula){
-	for i,cont:=0,0; cont < 10000; i,cont = (i+1)%2000,(cont+1) {
-		if(i<1000){
+	for i,cont:=0,0; cont < 10000; i,cont = (i+1)%20000,(cont+1) {
+		if(i<10000){
 			tela = grid1
 		} else {
 			tela = grid2
@@ -276,22 +277,22 @@ func chose(grid1 [][]Celula,grid2 [][]Celula){
 }
 
 func main(){
-	simulacao1 := make([][]Celula,100,100)
+	simulacao1 := make([][]Celula,28,28)
 	for i := range simulacao1 {
-    		simulacao1[i] = make([]Celula,100,100)
+    		simulacao1[i] = make([]Celula,38,38)
 	}
 
-	simulacao2 := make([][]Celula,100,100)
+	simulacao2 := make([][]Celula,28,28)
 	for i := range simulacao2 {
-    		simulacao2[i] = make([]Celula,100,100)
+    		simulacao2[i] = make([]Celula,38,38)
 	}
 
-   	Teste(simulacao1,100,100)
-	IniciaGrid(100,100,simulacao2)
+   	Teste(simulacao1,28,38)
+	IniciaGrid(28,38,simulacao2)
 
 
-	go simulate(simulacao1)
-	go simulate(simulacao2)
+	go simulate(28,38,simulacao1)
+	go simulate(28,38,simulacao2)
 	tela = simulacao1
 	//go chose(simulacao1,simulacao2)
 
