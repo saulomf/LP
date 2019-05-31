@@ -17,97 +17,13 @@ import (
 )
 
 
-
-
-
-
-
-func rule_random () Rule {
-    	s1 := rand.NewSource(time.Now().UnixNano())
-    	r1 := rand.New(s1)
-	var rule Rule
-	// 000 000 000 até 111 111 111
-	for domain := 0; domain < 512; domain++ {
-		if(r1.Intn(2)==1){
-			rule[domain] = true
-		} else {
-			 rule[domain] = false
-		}
-	}
-
-	return rule
-}
-func bitfy(pos_i int,pos_j int,N int,M int) int {
-	bit := 1 // Bit atual
-	ret := 0 // RETORNO
-	// de 0.00 00.0 001 até 1.00 00.0 000
-	// (i,j) = célula sendo analisada
-	for i:= pos_i-1; i <= pos_i+1; i++ {
-		for j:= pos_j-1; j <= pos_j+1; j++ {
-			if(grid[(i+N)%N][(j+M)%M].viva){
-				ret |= bit // obter bit caso tenha célula viva
-			}
-			bit <<= 1
-		}
-	}
-	return ret
-}
-
-func apply_rule(rule Rule,domain int) bool {
-	return rule[domain]
-}
-func conway_game (vivos int, vida bool) bool {
-	if(vivos == 3) {
-            	vida = true //Celula nasce se morta ou permanece se viva
-        } else if(vivos < 2) {
-		vida = false // Morre de solidao se viva
-	} else if(vivos > 3) {
-		vida = false // Morre de superpopulacao se viva
-   	}
-	return vida
-}
-
-func rule_conway () Rule {
-	var rule Rule
-	// 000 000 000 até 111 111 111
-	for domain := 0; domain < 512; domain++ {
-		vivos := 0
-		for i := domain; i > 0 ; i>>=1 {
-			if(i&0x1 == 1){
-				vivos++
-			}
-		}
-
-		// xxx x#x xxx -> # = celula em si
-		if(domain&0x010 == 0) {
-			rule[domain] = conway_game(vivos,false)
-		} else {
-			rule[domain] = conway_game(vivos-1,true)
-		}
-	}
-
-	return rule
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 var clear map[string]func() //create a map for storing clear funcs
 var img *ebiten.Image //Imagem 1 quadrado preto
 var img2 *ebiten.Image //Imagem 2 quadrado branco
 var grid = make([][]Celula,100,100) // grid global
 var teste int = 0 // variavel para teste de controle do grid
+type Rule [512]bool
+
 
 func init() {
     clear = make(map[string]func()) //Initialize it
@@ -123,7 +39,7 @@ func init() {
     }
     //Parte Grafica
     var err error
-	img, _, err = ebitenutil.NewImageFromFile("square.png", ebiten.FilterDefault)
+	img, _, err = ebitenutil.NewImageFromFile("black.png", ebiten.FilterDefault)
 	img2, _, err = ebitenutil.NewImageFromFile("blank.png", ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
@@ -145,14 +61,14 @@ func update(screen *ebiten.Image) error {
 		return nil
 	}
 	//ebitenutil.DebugPrint(screen, "Hello, World!")
-	screen.Fill(color.RGBA{0, 0xff, 0, 0xff})
+	screen.Fill(color.RGBA{0, 0x0f, 0, 0xff})
 
 	op := &ebiten.DrawImageOptions{}
 	//op.GeoM.Translate(1, 1)
 	//screen.DrawImage(img, op))
 
 	//x := 0.0
-	for j := 0; j < 38; j++ {
+	for j := 0; j < 73; j++ {
 		op.GeoM.Translate(grid[0][j].posX, grid[0][j].posY)
         if(grid[0][j].viva == true){
 		          screen.DrawImage(img2, op)
@@ -165,10 +81,10 @@ func update(screen *ebiten.Image) error {
 	//op.GeoM.Translate(x, 0)
 	//x = 0.0
 
-	for i := 0; i < 28; i++ {
+	for i := 0; i < 55; i++ {
 		//op.GeoM.Translate(0, 11)
 		//screen.DrawImage(img, op)
-		for j := 0; j < 38; j++ {
+		for j := 0; j < 73; j++ {
     		op.GeoM.Translate(grid[i][j].posX, grid[i][j].posY)
             if(grid[i][j].viva == true){
     		          screen.DrawImage(img2, op)
@@ -181,11 +97,11 @@ func update(screen *ebiten.Image) error {
 		//op.GeoM.Translate(x, 0)
 		//x = 0.0
 	}
-    if(teste < 60){
+    if(teste < 30){
         teste++
     }
-    if(teste == 60){
-        AtualizaGrid(28,38)
+    if(teste == 30){
+        AtualizaGrid(55,73)
         // Modificações para testar que o grid se altera
         teste = 0
     }
@@ -282,8 +198,6 @@ type Old_State struct{
 	vida bool
 }
 
-type Rule [512]bool
-
 func Jogo(rule Rule,N int, M int, i int, j int, hold chan int, result chan Old_State) {
     	//Verifica todos os vizinhos da celula
     	domain := bitfy(i,j,N,M)
@@ -332,14 +246,6 @@ func AtualizaGrid(N int,M int){
 		grid[new.i][new.j].viva = new.vida
 	}
 
-        	//fmt.Printf("\n")
-
-        //	if(cont == 100){//Garantir que não rode infinitamente
-        //		continua = false
-        //	}
-        //    cont++
-    	//}
-
 
 }
 
@@ -351,16 +257,29 @@ func Teste (N int,M int) {
 			grid[i][j].viva=false
             grid[i][j].posX=eixoX
             grid[i][j].posY=eixoY
-            eixoX+=11.0
+            eixoX+=6.0
 		}
         eixoX=1.0
-        eixoY+=11.0
+        eixoY+=6.0
 	}
+    //Glider
 	grid[0][1].viva = true
 	grid[1][2].viva = true
 	grid[2][0].viva = true
 	grid[2][1].viva = true
 	grid[2][2].viva = true
+
+    //10 cell row
+    grid[10][12].viva = true
+	grid[10][13].viva = true
+	grid[10][14].viva = true
+	grid[10][15].viva = true
+	grid[10][16].viva = true
+    grid[10][17].viva = true
+	grid[10][18].viva = true
+	grid[10][19].viva = true
+	grid[10][20].viva = true
+	grid[10][21].viva = true
 
 }
 
@@ -372,9 +291,9 @@ func main(){
     		grid[i] = make([]Celula,100,100)
 	}
 
-    Teste(28,38)
+    Teste(55,73)
 
-    if err := ebiten.Run(update, 420, 310, 2, "Novo jogo da vida"); err != nil {
+    if err := ebiten.Run(update, 439, 331, 2, "Novo jogo da vida"); err != nil {
 		log.Fatal(err)
 	}
     //IniciaGrid(100,100,grid)

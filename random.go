@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+
 func rule_random () Rule {
     	s1 := rand.NewSource(time.Now().UnixNano())
     	r1 := rand.New(s1)
@@ -16,7 +17,7 @@ func rule_random () Rule {
 		} else {
 			 rule[domain] = false
 		}
-	}	
-	
+	}
+
 	return rule
 }
