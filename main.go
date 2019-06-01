@@ -10,7 +10,7 @@ import (
 
         _ "image/png"
         "log"
-        "image/color"
+        //"image/color"
 
         "github.com/hajimehoshi/ebiten"
         "github.com/hajimehoshi/ebiten/ebitenutil"
@@ -18,9 +18,10 @@ import (
 
 
 var clear map[string]func() //create a map for storing clear funcs
+var fundo *ebiten.Image
 var img *ebiten.Image //Imagem 1 quadrado preto
 var img2 *ebiten.Image //Imagem 2 quadrado branco
-var grid = make([][]Celula,100,100) // grid global
+var grid = make([][]Celula,200,200) // grid global
 var teste int = 0 // variavel para teste de controle do grid
 type Rule [512]bool
 
@@ -41,6 +42,7 @@ func init() {
     var err error
 	img, _, err = ebitenutil.NewImageFromFile("black.png", ebiten.FilterDefault)
 	img2, _, err = ebitenutil.NewImageFromFile("blank.png", ebiten.FilterDefault)
+    fundo, _, err = ebitenutil.NewImageFromFile("mapa.png", ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,19 +63,18 @@ func update(screen *ebiten.Image) error {
 		return nil
 	}
 	//ebitenutil.DebugPrint(screen, "Hello, World!")
-	screen.Fill(color.RGBA{0, 0x0f, 0, 0xff})
-
+	//screen.Fill(color.RGBA{0, 0xff, 0, 0xff})
+    screen.DrawImage(fundo, nil)
 	op := &ebiten.DrawImageOptions{}
 	//op.GeoM.Translate(1, 1)
 	//screen.DrawImage(img, op))
 
 	//x := 0.0
-	for j := 0; j < 73; j++ {
+	for j := 0; j < 146; j++ {
 		op.GeoM.Translate(grid[0][j].posX, grid[0][j].posY)
+        op.GeoM.Scale(0.5, 0.5)
         if(grid[0][j].viva == true){
-		          screen.DrawImage(img2, op)
-        } else {
-            screen.DrawImage(img, op)
+		          screen.DrawImage(img, op)
         }
         op.GeoM.Reset()
 		//x-=11.0
@@ -81,15 +82,14 @@ func update(screen *ebiten.Image) error {
 	//op.GeoM.Translate(x, 0)
 	//x = 0.0
 
-	for i := 0; i < 55; i++ {
+	for i := 0; i < 110; i++ {
 		//op.GeoM.Translate(0, 11)
 		//screen.DrawImage(img, op)
-		for j := 0; j < 73; j++ {
+		for j := 0; j < 146; j++ {
     		op.GeoM.Translate(grid[i][j].posX, grid[i][j].posY)
+            op.GeoM.Scale(0.5, 0.5)
             if(grid[i][j].viva == true){
-    		          screen.DrawImage(img2, op)
-            } else {
-                screen.DrawImage(img, op)
+    		          screen.DrawImage(img, op)
             }
             op.GeoM.Reset()
 			//x-=11.0
@@ -97,11 +97,11 @@ func update(screen *ebiten.Image) error {
 		//op.GeoM.Translate(x, 0)
 		//x = 0.0
 	}
-    if(teste < 30){
+    if(teste < 15){
         teste++
     }
-    if(teste == 30){
-        AtualizaGrid(55,73)
+    if(teste == 15){
+        AtualizaGrid(110,146)
         // Modificações para testar que o grid se altera
         teste = 0
     }
@@ -218,8 +218,8 @@ func AtualizaGrid(N int,M int){
     	//cont := 0
     	//continua := true
 
-	//conway := rule_conway()
-	conway := rule_random()
+	conway := rule_conway()
+	//conway := rule_random()
 
     	//for continua != false {
 
@@ -270,16 +270,16 @@ func Teste (N int,M int) {
 	grid[2][2].viva = true
 
     //10 cell row
-    grid[10][12].viva = true
-	grid[10][13].viva = true
-	grid[10][14].viva = true
-	grid[10][15].viva = true
-	grid[10][16].viva = true
-    grid[10][17].viva = true
-	grid[10][18].viva = true
-	grid[10][19].viva = true
-	grid[10][20].viva = true
-	grid[10][21].viva = true
+    grid[20][12].viva = true
+	grid[20][13].viva = true
+	grid[20][14].viva = true
+	grid[20][15].viva = true
+	grid[20][16].viva = true
+    grid[20][17].viva = true
+	grid[20][18].viva = true
+	grid[20][19].viva = true
+	grid[20][20].viva = true
+	grid[20][21].viva = true
 
 }
 
@@ -288,10 +288,10 @@ func Teste (N int,M int) {
 func main(){
 
 	for i := range grid {
-    		grid[i] = make([]Celula,100,100)
+    		grid[i] = make([]Celula,200,200)
 	}
 
-    Teste(55,73)
+    Teste(110,146)
 
     if err := ebiten.Run(update, 439, 331, 2, "Novo jogo da vida"); err != nil {
 		log.Fatal(err)
