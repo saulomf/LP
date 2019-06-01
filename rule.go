@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
 )
@@ -16,14 +16,14 @@ import (
 	a um booleano de resultado
 */
 
-func bitfy(pos_i int,pos_j int,N int,M int, grid [][]Celula, especie int) int {
+func bitfy(pos_i int,pos_j int, grid vetCelula, especie int) int {
 	bit := 1 // Bit atual
 	ret := 0 // RETORNO
 	// de 0.00 00.0 001 até 1.00 00.0 000
 	// (i,j) = célula sendo analisada
 	for i:= pos_i-1; i <= pos_i+1; i++ {
 		for j:= pos_j-1; j <= pos_j+1; j++ {
-			celula := grid[(i+N)%N][(j+M)%M]
+			celula := grid.array[(i+grid.I)%grid.I][(j+grid.J)%grid.J]
 			if(celula.viva && celula.especie == especie){
 				ret |= bit // obter bit caso tenha célula viva
 			}								
