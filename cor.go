@@ -1,5 +1,13 @@
 package main
 
+//Retorna true caso esteja na linha do equador
+func Esta_no_Equador(Y int) bool {
+    if Y > 92 && Y < 134 {
+        return true;
+    }
+    return false;
+}
+
 
 //Retorna a cor onde determinada celula esta
 func cor_pixel (X int, Y int) string {

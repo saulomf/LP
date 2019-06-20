@@ -1,13 +1,17 @@
 package main
 
 func conway_game (vivos int, vida bool) bool {
-	if(vivos == 3) {
+	/* if(vivos == 3) {
             	vida = true //Celula nasce se morta ou permanece se viva
-        } else if(vivos < 2) {
+        }
+		else if(vivos < 2) {
 		vida = false // Morre de solidao se viva
-	} else if(vivos > 3) {
-		vida = false // Morre de superpopulacao se viva
-   	}
+		}*/
+        if(vivos == 2){
+        	vida = true
+        } else if(vivos > 3) {
+		    vida = false // Morre de superpopulacao se viva
+   	    }
 	return vida
 }
 

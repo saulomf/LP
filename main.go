@@ -88,19 +88,35 @@ func update(screen *ebiten.Image) error {
 		for j := 0; j < 146; j++ {
     		op.GeoM.Translate(grid[i][j].posX, grid[i][j].posY)
             op.GeoM.Scale(0.5, 0.5)
+
             if(grid[i][j].viva == true){
-    		          screen.DrawImage(img, op)
+                time_agora := time.Now()
+                su := grid[i][j].time_vida
+                diff := time_agora.Sub(su)
+
+                diff1 := int(diff/1e9)
+            //fmt.Println("agora: ", time_agora)
+            //fmt.Println("celula: ", su)
+                if(diff1 > 0){
+                    fmt.Println("diff de tempo: ", diff1)
+                }
+                if(diff1 < 5){
+                    screen.DrawImage(img, op)
+                } else{
+                    grid[i][j].viva = false
+                }
             }
+
             op.GeoM.Reset()
 			//x-=11.0
 		}
 		//op.GeoM.Translate(x, 0)
 		//x = 0.0
 	}
-    if(teste < 15){
+    if(teste < 10){
         teste++
     }
-    if(teste == 15){
+    if(teste == 10){
         AtualizaGrid(110,146)
         // Modificações para testar que o grid se altera
         teste = 0
@@ -124,6 +140,7 @@ type Celula struct{
     mutacoes Genes
     posX float64
     posY float64
+    time_vida time.Time
 }
 
 
@@ -132,47 +149,56 @@ func IniciaGrid(N int,M int, grid [][]Celula){
     s1 := rand.NewSource(time.Now().UnixNano())
     r1 := rand.New(s1)
     mutacao := -1
+    eixoX, eixoY := 1.0, 1.0
+
     for i := 0; i < N; i++ {
         for j := 0; j < M; j++ {
-            //Seta a vida da celula com 10% de chance dela nascer
-            if(r1.Intn(2) == 1){
 
+            grid[i][j].posX=eixoX
+            grid[i][j].posY=eixoY
+            eixoX+=6.0
+            //Seta a vida da celula com 5% de chance dela nascer
+            if(r1.Intn(20) == 1){
                 grid[i][j].viva = true
-                //Caso a celula esteja viva sorteia com 5% de chance cada gene de mutacao
+                grid[i][j].time_vida = time.Now()
+                //Caso a celula esteja viva sorteia com 8% de chance cada gene de mutacao
                 for l := 0; l < 6; l++ {
-                    mutacao = r1.Intn(30)
+                    mutacao = r1.Intn(25)
                     switch l {
                         case 0:
-                            if((mutacao >= 0) && (mutacao <1)){
+                            if((mutacao >= 0) && (mutacao <=1)){
                                 grid[i][j].mutacoes.agua = true
                             }
                             break
                         case 1:
-                            if((mutacao >= 0) && (mutacao <1)){
+                            if((mutacao >= 0) && (mutacao <=1)){
                                 grid[i][j].mutacoes.calor = true
                             }
                             break
                         case 2:
-                            if((mutacao >= 0) && (mutacao <1)){
+                            if((mutacao >= 0) && (mutacao <=1)){
                                 grid[i][j].mutacoes.frio = true
                             }
                             break
                         case 3:
-                            if((mutacao >= 0) && (mutacao <1)){
+                            if((mutacao >= 0) && (mutacao <=1)){
                                 grid[i][j].mutacoes.altitude = true
                             }
                             break
                         case 4:
-                            if((mutacao >= 0) && (mutacao <1)){
+                            if((mutacao >= 0) && (mutacao <=1)){
                                 grid[i][j].mutacoes.comida = true
                             }
                     }
                 }
-            } else {
+            }else {
                 grid[i][j].viva = false
             }
 
         }//end j
+
+        eixoX=1.0
+        eixoY+=6.0
     }//end i
 
 
@@ -244,6 +270,9 @@ func AtualizaGrid(N int,M int){
 	for i := 0; i < N*M; i++{
 		new = <-result
 		grid[new.i][new.j].viva = new.vida
+        if(new.vida == true){
+            grid[new.i][new.j].time_vida = time.Now()
+        }
 	}
 
 
@@ -264,10 +293,15 @@ func Teste (N int,M int) {
 	}
     //Glider
 	grid[0][1].viva = true
+    grid[0][1].time_vida = time.Now()
 	grid[1][2].viva = true
+    grid[1][2].time_vida = time.Now()
 	grid[2][0].viva = true
+    grid[2][0].time_vida = time.Now()
 	grid[2][1].viva = true
+    grid[2][1].time_vida = time.Now()
 	grid[2][2].viva = true
+    grid[2][2].time_vida = time.Now()
 
     //10 cell row
     grid[20][12].viva = true
@@ -291,7 +325,8 @@ func main(){
     		grid[i] = make([]Celula,200,200)
 	}
 
-    Teste(110,146)
+    //Teste(110,146)
+    IniciaGrid(110,146, grid)
 
     if err := ebiten.Run(update, 439, 331, 2, "Novo jogo da vida"); err != nil {
 		log.Fatal(err)
