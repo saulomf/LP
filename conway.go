@@ -6,12 +6,14 @@ func conway_game (vivos int, vida bool) bool {
         }
 		else if(vivos < 2) {
 		vida = false // Morre de solidao se viva
-		}*/
+		
+}*/
         if(vivos == 2){
         	vida = true
-        } else if(vivos > 3) {
+        }else if(vivos > 3) {
 		    vida = false // Morre de superpopulacao se viva
    	    }
+
 	return vida
 }
 
