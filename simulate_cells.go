@@ -1,50 +1,52 @@
 ﻿package main
 
-func Jogo(rule Rule, i int, j int, hold chan int, result chan Old_State,grid vetCelula) {
-    	//Verifica todos os vizinhos da celula
-    	domain_blu := bitfy(i,j,grid,1)
-	domain_red := bitfy(i,j,grid,2)
+func Jogo(regra func(int,int,vetCelula) Celula, i int, j int, result chan Old_State,grid vetCelula) {
 
 	//Abaixo estão sendo usada as regras do jogo da vida de conway, a ideia e tornar essas 	regras flexiveis a outros valores
     	var ret Old_State
     	ret.i= i
     	ret.j= j
-	if(apply_rule(rule,domain_blu) == apply_rule(rule,domain_red)){
-		ret.vida = false
+
+	ret.celula =  regra(i,j,grid)
+
+    	result <- ret
+}
+
+func regra_celula(i int,j int,grid vetCelula) Celula {
+	//Verifica todos os vizinhos da celula
+    	domain_blu := bitfy(i,j,grid,1)
+	domain_red := bitfy(i,j,grid,2)
+
+	var ret Celula
+
+	if(apply_rule(rule_conway(),domain_blu) == apply_rule(rule_conway(),domain_red)){
+		ret.viva = false
 		ret.especie = 0
 	} else {
-		ret.vida = true
-		if(apply_rule(rule,domain_blu)){
+		ret.viva = true
+		if(apply_rule(rule_conway(),domain_blu)){
 			ret.especie = 1
 		} else { // red
 			ret.especie = 2
 		}	
 	}
 
-    	hold <- 1
-    	result <- ret
+	return ret
 }
 
+func AtualizaGrid(regra func(int,int,vetCelula) Celula,grid vetCelula,backup vetCelula){
+	result := make(chan Old_State,grid.I*grid.J)
 
-
-func AtualizaGrid(rule Rule,grid vetCelula){
-	hold := make(chan int,0)
-	result := make(chan Old_State)
-
-    	for i := 0; i < grid.I; i++ {
-    		for j := 0; j < grid.J; j++ {
-     	   		go Jogo(rule,i,j,hold,result,grid)
+    	for i := 0; i < backup.I; i++ {
+    		for j := 0; j < backup.J; j++ {
+     	   		go Jogo(regra,i,j,result,backup)
     		}
     	}
-
-	for i := 0; i < grid.I*grid.J; i++{
-		<-hold
-	}
 
 	var new Old_State
 	for i := 0; i < grid.I*grid.J; i++{
 		new = <-result
-		grid.array[new.i][new.j].viva = new.vida
-		grid.array[new.i][new.j].especie=new.especie
+		grid.array[new.i][new.j].viva = new.celula.viva
+		grid.array[new.i][new.j].especie=new.celula.especie
 	}
 }

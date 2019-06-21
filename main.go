@@ -3,7 +3,7 @@
 import (
     	"log"
 
-     	"github.com/hajimehoshi/ebiten"
+     	"github.com/hajimehoshi/ebiten"	
 )
 
 
@@ -14,12 +14,12 @@ func IniciaGrid(grid vetCelula){
    	for i := 0; i < grid.I; i++ {
         	for j := 0; j < grid.J; j++ {
             	//Seta a vida da celula com 10% de chance dela nascer
-            	if(r1.Intn(2) == 1){
+            	if(r.Intn(2) == 1){
                 	grid.array[i][j].viva = true
-				grid.array[i][j].especie = r1.Intn(2)+1 // especie
+				grid.array[i][j].especie = r.Intn(2)+1 // especie
                 	//Caso a celula esteja viva sorteia com 5% de chance cada gene de mutacao
                 	for l := 0; l < 6; l++ {
-                    	mutacao = r1.Intn(30)
+                    	mutacao = r.Intn(30)
                     	switch l {
                         	case 0:
                             		if((mutacao >= 0) && (mutacao <1)){
@@ -56,24 +56,26 @@ func IniciaGrid(grid vetCelula){
 }
 
 func main(){
-	aloca_output()
 
-	simulacao2 := aloca_simulacao(50,70)
-	simulacao3 := aloca_simulacao(50,70)
+	ebiten.SetMaxTPS(30)
+	// Removida a funcionalidade de executar mais de uma simulação
+	//aloca_output()
 
-	IniciaGrid(simulacao2.grid)
-	IniciaGrid(simulacao3.grid)
+	simulacao := aloca_simulacao(cellsy,cellsx)
 
-	go simulate(rule_conway(),simulacao2)
-	go simulate(rule_random(),simulacao3)
-	
-	selecoes := aloca_muxsimulacao(2)
-	selecoes.array[0] = simulacao2
-	selecoes.array[1] = simulacao3
-	go chose(selecoes)
+	IniciaGrid(simulacao.backup)
+
+	tela.output = &simulacao.output
+	go simulate(regra_celula,simulacao)
+
+	// Eliminei a funcionalidade de executar mais de uma simulação	
+	//selecoes := aloca_muxsimulacao(2)
+	//selecoes.array[0] = simulacao2
+	//selecoes.array[1] = simulacao3
+	//go chose(selecoes)
+
 
     	if err := ebiten.Run(update, outputx, outputy, 2, "Novo jogo da vida"); err != nil {
 		log.Fatal(err)
 	}
-
 }

@@ -6,8 +6,7 @@ import(
 
 type Old_State struct{
 	i,j int
-	vida bool
-	especie int
+	celula Celula
 }
 
 type Rule [512]bool
@@ -50,6 +49,7 @@ type vetOutput struct {
 // Struct para representar simulações
 type Simulacao struct{
 	grid vetCelula
+	backup vetCelula
 	output vetOutput
 }
 
