@@ -21,6 +21,7 @@ var clear map[string]func() //create a map for storing clear funcs
 var fundo *ebiten.Image
 var img *ebiten.Image //Imagem 1 quadrado preto
 var img2 *ebiten.Image //Imagem 2 quadrado branco
+var img3 *ebiten.Image
 var grid = make([][]Celula,200,200) // grid global
 var teste int = 0 // variavel para teste de controle do grid
 type Rule [512]bool
@@ -39,8 +40,9 @@ func init() {
     }
     //Parte Grafica
     var err error
-    img, _, err = ebitenutil.NewImageFromFile("black.png", ebiten.FilterDefault)
-    img2, _, err = ebitenutil.NewImageFromFile("blank.png", ebiten.FilterDefault)
+    img, _, err = ebitenutil.NewImageFromFile("verde.png", ebiten.FilterDefault)
+    img2, _, err = ebitenutil.NewImageFromFile("pink.png", ebiten.FilterDefault)
+    img3, _, err = ebitenutil.NewImageFromFile("laranja.png", ebiten.FilterDefault)
     fundo, _, err = ebitenutil.NewImageFromFile("mapa.png", ebiten.FilterDefault)
     if err != nil {
         log.Fatal(err)
@@ -69,28 +71,26 @@ func update(screen *ebiten.Image) error {
     //screen.DrawImage(img, op))
 
     //x := 0.0
-    for j := 0; j < 146; j++ {
-        op.GeoM.Translate(grid[0][j].posX, grid[0][j].posY)
-        op.GeoM.Scale(0.5, 0.5)
-        if(grid[0][j].viva == true){
-                  screen.DrawImage(img, op)
-        }
-        op.GeoM.Reset()
-        //x-=11.0
-    }
     //op.GeoM.Translate(x, 0)
     //x = 0.0
-    
+
     for i := 0; i < 110; i++ {
         //op.GeoM.Translate(0, 11)
         //screen.DrawImage(img, op)
         for j := 0; j < 146; j++ {
+            alimentacao(i, j, grid[i][j].tipo_Cel)
             op.GeoM.Translate(grid[i][j].posX, grid[i][j].posY)
             op.GeoM.Scale(0.5, 0.5)
-            
-            
+
+
             if(grid[i][j].viva == true){
-                screen.DrawImage(img, op)
+                if(grid[i][j].tipo_Cel == "F"){
+                    screen.DrawImage(img, op)
+                }else if(grid[i][j].tipo_Cel == "H"){
+                    screen.DrawImage(img2, op)
+                }else if(grid[i][j].tipo_Cel == "C"){
+                    screen.DrawImage(img3, op)
+                }
             }else{
                 grid[i][j].viva = false
             }
@@ -108,6 +108,7 @@ func update(screen *ebiten.Image) error {
         // Modificações para testar que o grid se altera
         teste = 0
     }
+
     return nil
 }
 
@@ -129,6 +130,7 @@ type Celula struct{
     posY float64
     time_vida time.Time
     time_max time.Time
+    tipo_Cel string // H para herbivor, C para carnivoro, F para fotossintetico
 }
 
 
@@ -146,10 +148,14 @@ func IniciaGrid(N int,M int, grid [][]Celula){
             grid[i][j].posY=eixoY
             eixoX+=6.0
             //Seta a vida da celula com 5% de chance dela nascer
-            if(r1.Intn(20) == 1){
+            if(r1.Intn(40) == 1){
                 grid[i][j].viva = true
+                grid[i][j].tipo_Cel = sorteia_especie()
                 st := time.Now()
                 s := st.Add(time.Second * 5)
+                if(grid[i][j].tipo_Cel == "F"){
+                    s = s.Add(time.Second * 5)
+                }
                 grid[i][j].time_vida = st
                 grid[i][j].time_max = s
 
@@ -267,6 +273,7 @@ func AtualizaGrid(N int,M int){
             s := st.Add(time.Second * 5)
             grid[new.i][new.j].time_vida = st
             grid[new.i][new.j].time_max = s
+            grid[new.i][new.j].tipo_Cel = sorteia_especie()
         }
     }
 }
