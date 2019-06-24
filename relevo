@@ -1,0 +1,154 @@
+package main
+
+import (
+	"fmt"
+	"math"
+	"math/rand"
+	"time"
+)
+
+const altMatriz = 300
+const larMatriz = 300
+const gradiente = 0.1
+
+
+var s = rand.NewSource(time.Now().UnixNano())
+var r = rand.New(s)
+
+func supDireito(grid [altMatriz][larMatriz]float64)float64{
+	var n = r.Float64()
+	for (math.Abs(grid[0][larMatriz - 2] - n) > gradiente){
+		n = r.Float64()
+	}
+	return n
+}
+
+func infEsquerdo(grid [altMatriz][larMatriz]float64)float64{
+	var n = r.Float64()
+	for (math.Abs(grid[altMatriz - 2][0] - n) > gradiente){
+		n = r.Float64()
+	}
+	return n
+}
+
+
+func infDireito(grid [altMatriz][larMatriz]float64)float64{
+	return (grid[altMatriz - 2][larMatriz - 2] + grid[altMatriz - 2][larMatriz - 1] + grid[altMatriz - 1][larMatriz - 2])/3.0
+}
+
+func Superior(grid [altMatriz][larMatriz]float64, j int)float64{
+	var n = r.Float64()
+	for (math.Abs(grid[0][j - 1] - n) > gradiente){
+		n = r.Float64()
+	}
+	return n
+}
+
+func Inferior(grid [altMatriz][larMatriz]float64, j int)float64{
+	var n = r.Float64()
+	for (math.Abs(grid[altMatriz - 1][j - 1] - n) > gradiente){
+		n = r.Float64()
+	}
+	return n
+}
+
+func Esquerda(grid [altMatriz][larMatriz]float64, i int)float64{
+	var n = r.Float64()
+	for (math.Abs(grid[i - 1][0] - n) > gradiente){
+		n = r.Float64()
+	}
+	return n
+}
+
+func Direita(grid [altMatriz][larMatriz]float64, i int)float64{
+	var n = r.Float64()
+	for (math.Abs(grid[i - 1][larMatriz - 1] - n) > gradiente){
+		n = r.Float64()
+	}
+	return n
+}
+
+func Relevo(grid [altMatriz][larMatriz]float64, i int, j int)float64{
+	var n float64
+	var count int
+	n = 0
+	count = 0
+	if (grid[i - 1][j - 1] != 0){
+		n += grid[i - 1][j - 1]
+		count++
+	}
+	if (grid[i - 1][j] != 0){
+		n += grid[i - 1][j]
+		count++
+	}
+	if (grid[i - 1][j + 1] != 0){
+		n += grid[i - 1][j + 1]
+		count++
+	}
+	if (grid[i][j - 1] != 0){
+		n += grid[i][j - 1]
+		count++
+	}
+	if (grid[i][j + 1] != 0){
+		n += grid[i][j + 1]
+		count++
+	}
+	if (grid[i + 1][j - 1] != 0){
+		n += grid[i + 1][j - 1]
+		count++
+	}
+	if (grid[i + 1][j] != 0){
+		n += grid[i + 1][j]
+		count++
+	}
+	if (grid[i + 1][j + 1] != 0){
+		n += grid[i - 1][j - 1]
+		count++
+	}
+	n = n/float64(count)
+	return n
+}
+
+func geraTerreno()[altMatriz][larMatriz]float64{
+	var grid [altMatriz][larMatriz]float64
+	for i := 0; i < altMatriz; i++{
+		for j := 0; j < larMatriz; j++{
+			if (i == 0 && j == 0) {
+				grid[i][j] = r.Float64()
+			}else if (i == 0 && j == larMatriz - 1){
+				grid[i][j] = supDireito(grid)
+			}else if (i == altMatriz - 1 && j == 0){
+				grid[i][j] = infEsquerdo(grid)
+			}else if (i == altMatriz - 1 && j == larMatriz -1){
+				grid[i][j] = infDireito(grid)
+			}else if (i == 0){
+				grid[i][j] = Superior(grid, j)
+			}else if (i == altMatriz - 1){
+				grid[i][j] = Inferior(grid, j)
+			}else if (j == 0){
+				grid[i][j] = Esquerda(grid, i)
+			}else if (j == larMatriz - 1){
+				grid[i][j] = Direita(grid, i)
+			}else{
+				grid[i][j] = Relevo(grid, i, j)
+			}
+
+		}
+	}
+	return grid
+}
+
+func mostraTerreno(terreno [altMatriz][larMatriz]float64){
+	for i:= 0; i < altMatriz; i++{
+		for j := 0; j < larMatriz; j++{
+			fmt.Printf("%f ", terreno[i][j])
+		}
+		fmt.Printf("\n")
+	}
+}
+
+func main(){
+	var terreno [altMatriz][300]float64
+	terreno = geraTerreno()
+	mostraTerreno(terreno)
+}
