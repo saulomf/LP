@@ -73,17 +73,18 @@ func update(screen *ebiten.Image) error {
     //x := 0.0
     //op.GeoM.Translate(x, 0)
     //x = 0.0
-
     for i := 0; i < 110; i++ {
         //op.GeoM.Translate(0, 11)
         //screen.DrawImage(img, op)
         for j := 0; j < 146; j++ {
             alimentacao(i, j, grid[i][j].tipo_Cel)
+
             op.GeoM.Translate(grid[i][j].posX, grid[i][j].posY)
             op.GeoM.Scale(0.5, 0.5)
 
-
+            tempo_max(i, j)
             if(grid[i][j].viva == true){
+
                 if(grid[i][j].tipo_Cel == "F"){
                     screen.DrawImage(img, op)
                 }else if(grid[i][j].tipo_Cel == "H"){
@@ -274,6 +275,10 @@ func AtualizaGrid(N int,M int){
             grid[new.i][new.j].time_vida = st
             grid[new.i][new.j].time_max = s
             grid[new.i][new.j].tipo_Cel = sorteia_especie()
+        }else{
+            st := time.Now()
+            grid[new.i][new.j].time_vida = st
+            grid[new.i][new.j].time_max = st
         }
     }
 }

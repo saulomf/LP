@@ -3,6 +3,7 @@ package main
 import(
     "time"
     "math/rand"
+    //"fmt"
 )
 
 func sorteia_especie() string {//Sorteia um tipo de especie com maior probabilidade para plantas
@@ -94,4 +95,17 @@ func alimentacao(indice_i int, indice_j int, tipo string) {
         }
 
     }
+}
+
+func tempo_max(i int, j int){
+    tm := grid[i][j].time_max
+    start := time.Now()
+
+    diff := tm.Sub(start)
+    diff1 := int(diff/1e9)
+    if(diff1 < 1){
+        grid[i][j].viva = false
+    }else{
+        grid[i][j].viva = true
+    }       
 }
