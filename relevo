@@ -147,8 +147,32 @@ func mostraTerreno(terreno [altMatriz][larMatriz]float64){
 	}
 }
 
+func geraAgua(terreno [altMatriz][larMatriz]float64)[altMatriz][larMatriz]float64{
+	var grid [altMatriz][larMatriz]float64
+	for i:= 0; i < altMatriz; i++{
+		for j := 0; j < larMatriz; j++{
+			if (terreno[i][j] <= 0.3){
+				grid[i][j] = 0.3
+			}
+		}
+	}
+	return grid
+}
+
+func mostraAgua(agua [altMatriz][larMatriz]float64){
+	for i:= 0; i < altMatriz; i++{
+		for j := 0; j < larMatriz; j++{
+			fmt.Printf("%f ", agua[i][j])
+		}
+		fmt.Printf("\n")
+	}
+}
+
 func main(){
-	var terreno [altMatriz][300]float64
+	var terreno [altMatriz][larMatriz]float64
 	terreno = geraTerreno()
 	mostraTerreno(terreno)
+
+	agua := geraAgua(terreno)
+	mostraAgua(agua)
 }
