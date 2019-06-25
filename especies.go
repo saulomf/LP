@@ -3,6 +3,7 @@ package main
 import(
     "time"
     "math/rand"
+    //"fmt"
 )
 
 func sorteia_especie() string {//Sorteia um tipo de especie com maior probabilidade para plantas
@@ -37,25 +38,74 @@ func alimentacao(indice_i int, indice_j int, tipo string) {
     if(tipo == "H"){
         for i := indice_i-1; i < indice_i+1; i++ {
             for j:= indice_j-1; j < indice_j+1; j++ {
-                if((grid[i][j].viva == true) && (grid[i][j].tipo_Cel == "F")){
-                    grid[i][j].viva = false
-                    grid[indice_i][indice_j].time_max.Add(time.Second * 5)
-                    j = indice_j+1
-                    i = indice_i+1
+                cora := cor_pixel(i, j)
+                corv := cor_pixel(indice_i, indice_j)
+                if((cora == "b" && corv == "b")){
+                    if((grid[i][j].viva == true) && (grid[i][j].tipo_Cel == "F")){
+                        grid[i][j].viva = false
+                        grid[indice_i][indice_j].time_max.Add(time.Second * 5)
+                        j = indice_j+1
+                        i = indice_i+1
+                    }
+                }else if((cora == "v" && corv == "v")){
+                    if((grid[i][j].viva == true) && (grid[i][j].tipo_Cel == "F")){
+                        grid[i][j].viva = false
+                        grid[indice_i][indice_j].time_max.Add(time.Second * 5)
+                        j = indice_j+1
+                        i = indice_i+1
+                    }
+                }else if((cora == "a" && corv == "a")){
+                    if((grid[i][j].viva == true) && (grid[i][j].tipo_Cel == "F")){
+                        grid[i][j].viva = false
+                        grid[indice_i][indice_j].time_max.Add(time.Second * 5)
+                        j = indice_j+1
+                        i = indice_i+1
+                    }
                 }
             }
         }
     } else if (tipo == "C"){
         for i := indice_i-1; i < indice_i+1; i++ {
             for j:= indice_j-1; j < indice_j+1; j++ {
-                if((grid[i][j].viva == true) && (grid[i][j].tipo_Cel == "H")){
-                    grid[i][j].viva = false
-                    grid[indice_i][indice_j].time_max.Add(time.Second * 5)
-                    j = indice_j+1
-                    i = indice_i+1
+                cora := cor_pixel(i, j)
+                corv := cor_pixel(indice_i, indice_j)
+                if((cora == "b" && corv == "b")){
+                    if((grid[i][j].viva == true) && (grid[i][j].tipo_Cel == "H")){
+                        grid[i][j].viva = false
+                        grid[indice_i][indice_j].time_max.Add(time.Second * 5)
+                        j = indice_j+1
+                        i = indice_i+1
+                    }
+                }else if((cora == "v" && corv == "v")){
+                    if((grid[i][j].viva == true) && (grid[i][j].tipo_Cel == "H")){
+                        grid[i][j].viva = false
+                        grid[indice_i][indice_j].time_max.Add(time.Second * 5)
+                        j = indice_j+1
+                        i = indice_i+1
+                    }
+                }else if((cora == "a" && corv == "a")){
+                    if((grid[i][j].viva == true) && (grid[i][j].tipo_Cel == "H")){
+                        grid[i][j].viva = false
+                        grid[indice_i][indice_j].time_max.Add(time.Second * 5)
+                        j = indice_j+1
+                        i = indice_i+1
+                    }
                 }
             }
         }
 
     }
+}
+
+func tempo_max(i int, j int){
+    tm := grid[i][j].time_max
+    start := time.Now()
+
+    diff := tm.Sub(start)
+    diff1 := int(diff/1e9)
+    if(diff1 < 1){
+        grid[i][j].viva = false
+    }else{
+        grid[i][j].viva = true
+    }       
 }
