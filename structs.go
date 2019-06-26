@@ -1,61 +1,39 @@
-﻿package main
+package main
 
-import(
-     	"github.com/hajimehoshi/ebiten"
-)
-
-type Old_State struct{
-	i,j int
-	celula Celula
+type Mundo struct {
+	Planta	   [][]Planta
+	Herbivoro  [][]Herbivoro
+	Carnivoro  [][]Carnivoro
+	Agua	   [][]Agua
+	Ar	   [][]Ar
+	Relevo     [][]Relevo
 }
 
-type Rule [512]bool
+type Agua int
+type Relevo int
 
+type Planta struct {
+	a int
 
-//Conjunto de Genes para sobreviver a regiões que cada celula pode ter
-type Genes struct{
-    agua bool
-    calor bool
-    frio bool
-    altitude bool
-    comida bool
 }
 
-//Estrutura de cada celula do grid
-type Celula struct{
-    	viva bool
-    	especie int
-    	mutacoes Genes
+type Herbivoro struct {
+	a int
+
 }
 
-// Coleção de células
-type vetCelula struct{
-	I int
-	J int
-	array [][]Celula
+type Carnivoro struct {
+	a int
+
 }
 
-//Estrutura para cada unidade de output
+
+type Ar struct {
+	a int
+
+}
+
 type Output struct {
-	imagem *ebiten.Image
-}
+	a int
 
-type vetOutput struct {
-	I int
-	J int
-	array [][]Output
 }
-
-// Struct para representar simulações
-type Simulacao struct{
-	grid vetCelula
-	backup vetCelula
-	output vetOutput
-}
-
-// Struct para selecionar simulacao
-type muxSimulacao struct{
-	array []Simulacao
-	i int	// Selecao
-	N int 	// Tamanho atual
-}	
