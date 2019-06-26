@@ -9,8 +9,32 @@ import (
 
 const altMatriz = 300
 const larMatriz = 300
-const gradiente = 0.1
+const altGrid = 300
+const larGrid = 300
+const gradiente = 0.25
+const consumoAgua = 0.01
+const nascenteAgua = 0.1
 
+
+type Genes struct{
+	agua bool
+	calor bool
+	frio bool
+	altitude bool
+	comida bool
+}
+
+//Estrutura de cada celula do grid
+type Celula struct{
+	viva bool
+	especie int
+	mutacoes Genes
+	posX float64
+	posY float64
+	time_vida time.Time
+	time_max time.Time
+	tipo_Cel string // H para herbivor, C para carnivoro, F para fotossintetico
+}
 
 var s = rand.NewSource(time.Now().UnixNano())
 var r = rand.New(s)
@@ -168,11 +192,722 @@ func mostraAgua(agua [altMatriz][larMatriz]float64){
 	}
 }
 
-func main(){
-	var terreno [altMatriz][larMatriz]float64
-	terreno = geraTerreno()
-	mostraTerreno(terreno)
 
-	agua := geraAgua(terreno)
-	mostraAgua(agua)
+
+func esqSupCel (grid [altGrid][larGrid]Celula)int{
+	var count int
+	count = 0
+	if grid[0][0].viva == true{
+		count++
+	}
+	if grid[0][1].viva == true{
+		count++
+	}
+	if grid[1][0].viva == true{
+		count++
+	}
+	if grid[1][1].viva == true{
+		count++
+	}
+	return count
 }
+
+func dirSupCel (grid [altGrid][larGrid]Celula)int{
+	var count int
+	count = 0
+	if grid[0][larGrid - 1].viva == true{
+		count++
+	}
+	if grid[0][larGrid - 2].viva == true{
+		count++
+	}
+	if grid[1][larGrid - 1].viva == true{
+		count++
+	}
+	if grid[1][larGrid - 2].viva == true{
+		count++
+	}
+	return count
+}
+
+func esqInfCel (grid [altGrid][larGrid]Celula)int{
+	var count int
+	count = 0
+	if grid[altGrid - 1][0].viva == true{
+		count++
+	}
+	if grid[altGrid - 1][1].viva == true{
+		count++
+	}
+	if grid[altGrid - 2][0].viva == true{
+		count++
+	}
+	if grid[altGrid - 2][1].viva == true{
+		count++
+	}
+	return count
+}
+
+func dirInfCel (grid [altGrid][larGrid]Celula)int{
+	var count int
+	count = 0
+	if grid[altGrid - 1][larGrid - 1].viva == true{
+		count++
+	}
+	if grid[altGrid - 2][larGrid - 1].viva == true{
+		count++
+	}
+	if grid[altGrid - 2][larGrid - 2].viva == true{
+		count++
+	}
+	if grid[altGrid - 1][larGrid - 2].viva == true{
+		count++
+	}
+	return count
+}
+
+func cimaCel (grid [altGrid][larGrid]Celula, j int)int{
+	var count int
+	count = 0
+	if grid[0][j - 1].viva == true{
+		count++
+	}
+	if grid[0][j].viva == true{
+		count++
+	}
+	if grid[0][j + 1].viva == true{
+		count++
+	}
+	if grid[1][j - 1].viva == true{
+		count++
+	}
+	if grid[1][j].viva == true{
+		count++
+	}
+	if grid[1][j + 1].viva == true{
+		count++
+	}
+	return count
+}
+
+func baixoCel (grid [altGrid][larGrid]Celula, j int)int{
+	var count int
+	count = 0
+	if grid[altGrid - 1][j - 1].viva == true{
+		count++
+	}
+	if grid[altGrid - 1][j].viva == true{
+		count++
+	}
+	if grid[altGrid - 1][j + 1].viva == true{
+		count++
+	}
+	if grid[altGrid - 2][j - 1].viva == true{
+		count++
+	}
+	if grid[altGrid - 2][j].viva == true{
+		count++
+	}
+	if grid[altGrid - 2][j + 1].viva == true{
+		count++
+	}
+	return count
+}
+
+func esqCel (grid [altGrid][larGrid]Celula, i int)int{
+	var count int
+	count = 0
+	if grid[i - 1][0].viva == true{
+		count++
+	}
+	if grid[i][0].viva == true{
+		count++
+	}
+	if grid[i + 1][0].viva == true{
+		count++
+	}
+	if grid[i - 1][1].viva == true{
+		count++
+	}
+	if grid[i][1].viva == true{
+		count++
+	}
+	if grid[i + 1][1].viva == true{
+		count++
+	}
+	return count
+}
+
+func dirCel (grid [altGrid][larGrid]Celula, i int)int{
+	var count int
+	count = 0
+	if grid[i - 1][larGrid - 1].viva == true{
+		count++
+	}
+	if grid[i][larGrid - 1].viva == true{
+		count++
+	}
+	if grid[i + 1][larGrid - 1].viva == true{
+		count++
+	}
+	if grid[i - 1][larGrid - 2].viva == true{
+		count++
+	}
+	if grid[i][larGrid - 2].viva == true{
+		count++
+	}
+	if grid[i + 1][larGrid - 2].viva == true{
+		count++
+	}
+	return count
+}
+
+func arredoresCel (grid [altGrid][larGrid]Celula, i int, j int)int{
+	var count int
+	count = 0
+	if grid[i - 1][j - 1].viva == true{
+		count++
+	}
+	if grid[i - 1][j].viva == true{
+		count++
+	}
+	if grid[i - 1][j + 1].viva == true{
+		count++
+	}
+	if grid[i][j - 1].viva == true{
+		count++
+	}
+	if grid[i][j].viva == true{
+		count++
+	}
+	if grid[i][j + 1].viva == true{
+		count++
+	}
+	if grid[i + 1][j - 1].viva == true{
+		count++
+	}
+	if grid[i + 1][j].viva == true{
+		count++
+	}
+	if grid[i + 1][j + 1].viva == true{
+		count++
+	}
+	return count
+}
+
+
+func consomeAgua(agua [altMatriz][larMatriz]float64, grid [altGrid][larGrid]Celula){
+	var n int
+	for i := 0; i < altMatriz; i++{
+		for j := 0; j < larMatriz; j++{
+			if agua[i][j] > 0.0 {
+				if (i == 0 && j == 0) {
+					n = esqSupCel(grid)
+				} else if (i == 0 && j == larMatriz-1) {
+					n = dirSupCel(grid)
+				} else if (i == altMatriz-1 && j == 0) {
+					n = esqInfCel(grid)
+				} else if (i == altMatriz-1 && j == larMatriz-1) {
+					n = dirInfCel(grid)
+				} else if (i == 0) {
+					n = cimaCel(grid, j)
+				} else if (i == altMatriz-1) {
+					n = baixoCel(grid, j)
+				} else if (j == 0) {
+					n = esqCel(grid, i)
+				} else if (j == larMatriz-1) {
+					n = dirCel(grid, i)
+				} else {
+					n = arredoresCel(grid, i, j)
+				}
+				agua[i][j] -= consumoAgua*float64(n)
+			}else {
+				agua[i][j] = 0.0
+			}
+		}
+	}
+}
+
+
+func normalEsqSup(agua [altMatriz][larMatriz]float64)[altMatriz][larMatriz]float64{
+	var cont int
+	var totalAgua float64
+	cont = 0
+	totalAgua = 0.0
+	if agua[0][0] > 0.0{
+		cont++
+		totalAgua += agua[0][0]
+	}
+	if agua[0][1] > 0.0{
+		cont++
+		totalAgua += agua[0][1]
+	}
+	if agua[1][0] > 0.0{
+		cont++
+		totalAgua += agua[1][0]
+	}
+	if agua[1][1] > 0.0{
+		cont++
+		totalAgua += agua[1][1]
+	}
+	//Primeiro conta tiles adjacentes, agora distribui
+	if agua[0][0] > 0.0{
+		agua[0][0] = totalAgua/float64(cont)
+	}
+	if agua[0][1] > 0.0{
+		agua[0][1] = totalAgua/float64(cont)
+	}
+	if agua[1][0] > 0.0{
+		agua[1][0] = totalAgua/float64(cont)
+	}
+	if agua[1][1] > 0.0{
+		agua[1][1] = totalAgua/float64(cont)
+	}
+	return agua
+}
+
+func normalDirSup(agua [altMatriz][larMatriz]float64)[altMatriz][larMatriz]float64{
+	var cont int
+	var totalAgua float64
+	cont = 0
+	totalAgua = 0.0
+	if agua[0][larMatriz - 1] > 0.0{
+		cont++
+		totalAgua += agua[0][larMatriz - 1]
+	}
+	if agua[0][larMatriz - 2] > 0.0{
+		cont++
+		totalAgua += agua[0][larMatriz - 2]
+	}
+	if agua[1][larMatriz - 1] > 0.0{
+		cont++
+		totalAgua += agua[1][larMatriz - 1]
+	}
+	if agua[1][larMatriz - 2] > 0.0{
+		cont++
+		totalAgua += agua[1][larMatriz - 2]
+	}
+	//Primeiro conta tiles adjacentes, agora distribui
+	if agua[0][larMatriz - 1] > 0.0{
+		agua[0][larMatriz - 1] = totalAgua/float64(cont)
+	}
+	if agua[0][larMatriz - 2] > 0.0{
+		agua[0][larMatriz - 2] = totalAgua/float64(cont)
+	}
+	if agua[1][larMatriz - 1] > 0.0{
+		agua[1][larMatriz - 1] = totalAgua/float64(cont)
+	}
+	if agua[1][larMatriz - 2] > 0.0{
+		agua[1][larMatriz - 2] = totalAgua/float64(cont)
+	}
+	return agua
+}
+
+func normalDirInf(agua [altMatriz][larMatriz]float64)[altMatriz][larMatriz]float64{
+	var cont int
+	var totalAgua float64
+	cont = 0
+	totalAgua = 0.0
+	if agua[altMatriz - 1][larMatriz - 1] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 1][larMatriz - 1]
+	}
+	if agua[altMatriz - 1][larMatriz - 2] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 1][larMatriz - 2]
+	}
+	if agua[altMatriz - 2][larMatriz - 1] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 2][larMatriz - 1]
+	}
+	if agua[altMatriz - 2][larMatriz - 2] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 2][larMatriz - 2]
+	}
+	//Primeiro conta tiles adjacentes, agora distribui
+	if agua[altMatriz - 1][larMatriz - 1] > 0.0{
+		agua[altMatriz - 1][larMatriz - 1] = totalAgua/float64(cont)
+	}
+	if agua[altMatriz - 1][larMatriz - 2] > 0.0{
+		agua[altMatriz - 1][larMatriz - 2] = totalAgua/float64(cont)
+	}
+	if agua[altMatriz - 2][larMatriz - 1] > 0.0{
+		agua[altMatriz - 2][larMatriz - 1] = totalAgua/float64(cont)
+	}
+	if agua[altMatriz - 2][larMatriz - 2] > 0.0{
+		agua[altMatriz - 2][larMatriz - 2] = totalAgua/float64(cont)
+	}
+	return agua
+}
+
+func normalEsqInf(agua [altMatriz][larMatriz]float64)[altMatriz][larMatriz]float64{
+	var cont int
+	var totalAgua float64
+	cont = 0
+	totalAgua = 0.0
+	if agua[altMatriz - 1][0] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 1][0]
+	}
+	if agua[altMatriz - 1][1] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 1][1]
+	}
+	if agua[altMatriz - 2][0] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 2][0]
+	}
+	if agua[altMatriz - 2][1] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 2][1]
+	}
+	//Primeiro conta tiles adjacentes, agora distribui
+	if agua[altMatriz - 1][0] > 0.0{
+		agua[altMatriz - 1][0] = totalAgua/float64(cont)
+	}
+	if agua[altMatriz - 1][1] > 0.0{
+		agua[altMatriz - 1][1] = totalAgua/float64(cont)
+	}
+	if agua[altMatriz - 2][0] > 0.0{
+		agua[altMatriz - 2][0] = totalAgua/float64(cont)
+	}
+	if agua[altMatriz - 2][1] > 0.0{
+		agua[altMatriz - 2][1] = totalAgua/float64(cont)
+	}
+	return agua
+}
+
+func normalTopo(agua [altMatriz][larMatriz]float64, j int)[altMatriz][larMatriz]float64{
+	var cont int
+	var totalAgua float64
+	cont = 0
+	totalAgua = 0.0
+	if agua[0][j - 1] > 0.0{
+		cont++
+		totalAgua += agua[0][j - 1]
+	}
+	if agua[0][j] > 0.0{
+		cont++
+		totalAgua += agua[0][j]
+	}
+	if agua[0][j + 1] > 0.0{
+		cont++
+		totalAgua += agua[0][j + 1]
+	}
+	if agua[1][j - 1] > 0.0{
+		cont++
+		totalAgua += agua[1][j - 1]
+	}
+	if agua[1][j] > 0.0{
+		cont++
+		totalAgua += agua[1][j]
+	}
+	if agua[1][j + 1] > 0.0{
+		cont++
+		totalAgua += agua[1][j + 1]
+	}
+	//Primeiro conta tiles adjacentes, agora distribui
+	if agua[0][j - 1] > 0.0{
+		agua[0][j - 1] = totalAgua/float64(cont)
+	}
+	if agua[0][j] > 0.0{
+		agua[0][j] = totalAgua/float64(cont)
+	}
+	if agua[0][j + 1] > 0.0{
+		agua[0][j + 1] = totalAgua/float64(cont)
+	}
+	if agua[1][j - 1] > 0.0{
+		agua[1][j - 1] = totalAgua/float64(cont)
+	}
+	if agua[1][j] > 0.0{
+		agua[1][j] = totalAgua/float64(cont)
+	}
+	if agua[1][j + 1] > 0.0{
+		agua[1][j + 1] = totalAgua/float64(cont)
+	}
+	return agua
+}
+
+func normalBaixo(agua [altMatriz][larMatriz]float64, j int)[altMatriz][larMatriz]float64{
+	var cont int
+	var totalAgua float64
+	cont = 0
+	totalAgua = 0.0
+	if agua[altMatriz - 1][j - 1] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 1][j - 1]
+	}
+	if agua[altMatriz - 1][j] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 1][j]
+	}
+	if agua[altMatriz - 1][j + 1] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 1][j + 1]
+	}
+	if agua[altMatriz - 2][j - 1] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 2][j - 1]
+	}
+	if agua[altMatriz - 2][j] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 2][j]
+	}
+	if agua[altMatriz - 2][j + 1] > 0.0{
+		cont++
+		totalAgua += agua[altMatriz - 2][j + 1]
+	}
+	//Primeiro conta tiles adjacentes, agora distribui
+	if agua[altMatriz - 1][j - 1] > 0.0{
+		agua[altMatriz - 1][j - 1] = totalAgua/float64(cont)
+	}
+	if agua[altMatriz - 1][j] > 0.0{
+		agua[altMatriz - 1][j] = totalAgua/float64(cont)
+	}
+	if agua[altMatriz - 1][j + 1] > 0.0{
+		agua[altMatriz - 1][j + 1] = totalAgua/float64(cont)
+	}
+	if agua[altMatriz - 2][j - 1] > 0.0{
+		agua[altMatriz - 2][j - 1] = totalAgua/float64(cont)
+	}
+	if agua[altMatriz - 2][j] > 0.0{
+		agua[altMatriz - 2][j] = totalAgua/float64(cont)
+	}
+	if agua[altMatriz - 2][j + 1] > 0.0{
+		agua[altMatriz - 2][j + 1] = totalAgua/float64(cont)
+	}
+	return agua
+}
+
+func normalEsquerda(agua [altMatriz][larMatriz]float64, i int)[altMatriz][larMatriz]float64{
+	var cont int
+	var totalAgua float64
+	cont = 0
+	totalAgua = 0.0
+	if agua[i - 1][0] > 0.0{
+		cont++
+		totalAgua += agua[i - 1][0]
+	}
+	if agua[i][0] > 0.0{
+		cont++
+		totalAgua += agua[i][0]
+	}
+	if agua[i + 1][0] > 0.0{
+		cont++
+		totalAgua += agua[i + 1][0]
+	}
+	if agua[i - 1][1] > 0.0{
+		cont++
+		totalAgua += agua[i - 1][1]
+	}
+	if agua[i][1] > 0.0{
+		cont++
+		totalAgua += agua[i][1]
+	}
+	if agua[i + 1][1] > 0.0{
+		cont++
+		totalAgua += agua[i + 1][1]
+	}
+	//Primeiro conta tiles adjacentes, agora distribui
+	if agua[i - 1][0] > 0.0{
+		agua[i - 1][0] = totalAgua/float64(cont)
+	}
+	if agua[i][0] > 0.0{
+		agua[i][0] = totalAgua/float64(cont)
+	}
+	if agua[i + 1][0] > 0.0{
+		agua[i + 1][0] = totalAgua/float64(cont)
+	}
+	if agua[i - 1][1] > 0.0{
+		agua[i - 1][1] = totalAgua/float64(cont)
+	}
+	if agua[i][1] > 0.0{
+		agua[i][1] = totalAgua/float64(cont)
+	}
+	if agua[i + 1][1] > 0.0{
+		agua[i + 1][1] = totalAgua/float64(cont)
+	}
+	return agua
+}
+
+func normalDireita(agua [altMatriz][larMatriz]float64, i int)[altMatriz][larMatriz]float64{
+	var cont int
+	var totalAgua float64
+	cont = 0
+	totalAgua = 0.0
+	if agua[i - 1][larMatriz - 1] > 0.0{
+		cont++
+		totalAgua += agua[i - 1][larMatriz - 1]
+	}
+	if agua[i][larMatriz - 1] > 0.0{
+		cont++
+		totalAgua += agua[i][larMatriz - 1]
+	}
+	if agua[i + 1][larMatriz - 1] > 0.0{
+		cont++
+		totalAgua += agua[i + 1][larMatriz - 1]
+	}
+	if agua[i - 1][larMatriz - 2] > 0.0{
+		cont++
+		totalAgua += agua[i - 1][larMatriz - 2]
+	}
+	if agua[i][larMatriz - 2] > 0.0{
+		cont++
+		totalAgua += agua[i][larMatriz - 2]
+	}
+	if agua[i + 1][larMatriz - 2] > 0.0{
+		cont++
+		totalAgua += agua[i + 1][larMatriz - 2]
+	}
+	//Primeiro conta tiles adjacentes, agora distribui
+	if agua[i - 1][larMatriz - 1] > 0.0{
+		agua[i - 1][larMatriz - 1] = totalAgua/float64(cont)
+	}
+	if agua[i][larMatriz - 1] > 0.0{
+		agua[i][larMatriz - 1] = totalAgua/float64(cont)
+	}
+	if agua[i + 1][larMatriz - 1] > 0.0{
+		agua[i + 1][larMatriz - 1] = totalAgua/float64(cont)
+	}
+	if agua[i - 1][larMatriz - 2] > 0.0{
+		agua[i - 1][larMatriz - 2] = totalAgua/float64(cont)
+	}
+	if agua[i][larMatriz - 2] > 0.0{
+		agua[i][larMatriz - 2] = totalAgua/float64(cont)
+	}
+	if agua[i + 1][larMatriz - 2] > 0.0{
+		agua[i + 1][larMatriz - 2] = totalAgua/float64(cont)
+	}
+	return agua
+}
+
+func normalArredores(agua [altMatriz][larMatriz]float64, i int, j int)[altMatriz][larMatriz]float64{
+	var cont int
+	var totalAgua float64
+	cont = 0
+	totalAgua = 0.0
+	if agua[i - 1][j - 1] > 0.0{
+		cont++
+		totalAgua += agua[i - 1][j - 1]
+	}
+	if agua[i - 1][j] > 0.0{
+		cont++
+		totalAgua += agua[i - 1][j]
+	}
+	if agua[i - 1][j + 1] > 0.0{
+		cont++
+		totalAgua += agua[i - 1][j + 1]
+	}
+	if agua[i][j - 1] > 0.0{
+		cont++
+		totalAgua += agua[i][j - 1]
+	}
+	if agua[i][j] > 0.0{
+		cont++
+		totalAgua += agua[i][j]
+	}
+	if agua[i][j + 1] > 0.0{
+		cont++
+		totalAgua += agua[i][j + 1]
+	}
+	if agua[i + 1][j - 1] > 0.0{
+		cont++
+		totalAgua += agua[i + 1][j - 1]
+	}
+	if agua[i + 1][j] > 0.0{
+		cont++
+		totalAgua += agua[i + 1][j]
+	}
+	if agua[i + 1][j + 1] > 0.0{
+		cont++
+		totalAgua += agua[i + 1][j + 1]
+	}
+	//Primeiro conta tiles adjacentes, agora distribui
+	if agua[i - 1][j - 1] > 0.0{
+		agua[i - 1][j - 1] = totalAgua/float64(cont)
+	}
+	if agua[i - 1][j] > 0.0{
+		agua[i - 1][j] = totalAgua/float64(cont)
+	}
+	if agua[i - 1][j + 1] > 0.0{
+		agua[i - 1][j + 1] = totalAgua/float64(cont)
+	}
+	if agua[i][j - 1] > 0.0{
+		agua[i][j - 1] = totalAgua/float64(cont)
+	}
+	if agua[i][j] > 0.0{
+		agua[i][j] = totalAgua/float64(cont)
+	}
+	if agua[i][j + 1] > 0.0{
+		agua[i][j + 1] = totalAgua/float64(cont)
+	}
+	if agua[i + 1][j - 1] > 0.0{
+		agua[i + 1][j - 1] = totalAgua/float64(cont)
+	}
+	if agua[i + 1][j] > 0.0{
+		agua[i + 1][j] = totalAgua/float64(cont)
+	}
+	if agua[i + 1][j + 1] > 0.0{
+		agua[i + 1][j + 1] = totalAgua/float64(cont)
+	}
+	return agua
+}
+
+
+func normalizaAgua(agua [altMatriz][larMatriz]float64)[altMatriz][larMatriz]float64{
+	var n int
+	for i := 0; i < altMatriz; i++{
+		for j := 0; j < larMatriz; j++{
+			if agua[i][j] > 0.0 {
+				if (i == 0 && j == 0) {
+					agua = normalEsqSup(agua)
+				} else if (i == 0 && j == larMatriz-1) {
+					agua = normalDirSup(agua)
+				} else if (i == altMatriz-1 && j == 0) {
+					agua = normalEsqInf(agua)
+				} else if (i == altMatriz-1 && j == larMatriz-1) {
+					agua = normalDirInf(agua)
+				} else if (i == 0) {
+					agua = normalTopo(agua, j)
+				} else if (i == altMatriz-1) {
+					agua = normalBaixo(agua, j)
+				} else if (j == 0) {
+					agua = normalEsquerda(agua, i)
+				} else if (j == larMatriz-1) {
+					agua = normalDireita(agua, i)
+				} else {
+					agua = normalArredores(agua, i, j)
+				}
+				agua[i][j] -= consumoAgua*float64(n)
+			}else {
+				agua[i][j] = 0.0
+			}
+		}
+	}
+	return agua
+}
+
+func nascente(agua [altMatriz][larMatriz]float64)[altMatriz][larMatriz]float64{
+	var count int
+	count = 0
+	for (count < 3){
+		x := r.Intn(altMatriz)
+		y := r.Intn(larMatriz)
+		if (agua[x][y] > 0.0){
+			agua[x][y] += nascenteAgua
+			count++
+		}
+	}
+	return agua
+}
+
+//func main(){
+//	var terreno [altMatriz][larMatriz]float64
+//	terreno = geraTerreno()
+//	mostraTerreno(terreno)
+//
+//	agua := geraAgua(terreno)
+//	mostraAgua(agua)
+//
+//
+//}
